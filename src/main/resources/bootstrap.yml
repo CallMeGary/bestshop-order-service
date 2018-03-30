@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: bestshop-order-service
+
+  cloud:
+    config:
+      fail-fast: true
+      uri: http://bestshop-config-service:8888
+
