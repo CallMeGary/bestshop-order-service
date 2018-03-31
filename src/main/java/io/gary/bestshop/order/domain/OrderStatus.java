@@ -3,6 +3,7 @@ package io.gary.bestshop.order.domain;
 public enum OrderStatus {
 
     Created,
-    Delivering,
+    Cancelled,
+    Delivered,
     Completed
 }

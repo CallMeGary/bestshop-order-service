@@ -22,7 +22,7 @@ public class OrderRequest {
     private String productId;
 
     @NotBlank
-    private String createdBy;
+    private String purchasedBy;
 
     @Valid
     @NotNull

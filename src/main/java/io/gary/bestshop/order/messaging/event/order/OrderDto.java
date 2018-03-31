@@ -1,12 +1,10 @@
-package io.gary.bestshop.order.domain;
+package io.gary.bestshop.order.messaging.event.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,21 +14,19 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "orders")
-public class Order {
+public class OrderDto {
 
-    @Id
     private String id;
 
-    private Product product;
+    private String productId;
 
     private BigDecimal price;
 
-    private Profile purchasedBy;
+    private String purchasedBy;
 
-    private DeliveryAddress deliveryAddress;
+    private DeliveryAddressDto deliveryAddress;
 
-    private OrderStatus status;
+    private String status;
 
     private LocalDateTime createdAt;
 

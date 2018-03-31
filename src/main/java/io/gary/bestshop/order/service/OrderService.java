@@ -4,14 +4,13 @@ import feign.FeignException;
 import io.gary.bestshop.order.client.ProductClient;
 import io.gary.bestshop.order.client.ProfileClient;
 import io.gary.bestshop.order.domain.Order;
-import io.gary.bestshop.order.domain.OrderStatus;
 import io.gary.bestshop.order.domain.Product;
 import io.gary.bestshop.order.domain.Profile;
 import io.gary.bestshop.order.dto.OrderRequest;
-import io.gary.bestshop.order.errors.InvalidOrderRequestException;
-import io.gary.bestshop.order.errors.OrderNotFoundException;
+import io.gary.bestshop.order.errors.*;
+import io.gary.bestshop.order.messaging.OrderEventPublisher;
 import io.gary.bestshop.order.repository.OrderRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +19,21 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static io.gary.bestshop.order.domain.OrderStatus.*;
+
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OrderService {
 
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
-    private ProductClient productClient;
+    private final ProductClient productClient;
 
-    private ProfileClient profileClient;
+    private final ProfileClient profileClient;
+
+    private final OrderEventPublisher orderEventPublisher;
+
 
     public List<Order> getOrders() {
 
@@ -50,26 +54,65 @@ public class OrderService {
         log.info("Creating order: request={}", request);
 
         Product product = findProductOrThrow(request.getProductId());
-        Profile createdBy = findProfileOrThrow(request.getCreatedBy());
+        Profile purchasedBy = findProfileOrThrow(request.getPurchasedBy());
 
         Order toCreate = Order.builder()
                 .product(product)
-                .createdBy(createdBy)
+                .price(product.getPrice())
+                .purchasedBy(purchasedBy)
                 .deliveryAddress(request.getDeliveryAddress())
-                .status(OrderStatus.Created)
+                .status(Created)
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return orderRepository.save(toCreate);
+        Order created = orderRepository.save(toCreate);
+
+        return orderEventPublisher.publishOrderCreatedEvent(created);
     }
 
-    public void deleteOrder(@NotNull String id) {
+    public Order cancelOrder(@NotNull String id) {
 
-        log.info("Deleting order: id={}", id);
+        log.info("Cancelling order: id={}", id);
 
-        Order toDelete = findOrderOrThrow(id);
+        Order order = findOrderOrThrow(id);
 
-        orderRepository.delete(toDelete);
+        if (order.getStatus() != Created) {
+            throw new OrderNotCancellableException(order.getStatus());
+        }
+
+        Order saved = orderRepository.save(order.withStatus(Cancelled));
+
+        return orderEventPublisher.publishOrderCancelledEvent(saved);
+    }
+
+    public Order deliverOrder(@NotNull String id) {
+
+        log.info("Delivered order: id={}", id);
+
+        Order order = findOrderOrThrow(id);
+
+        if (order.getStatus() != Created) {
+            throw new OrderNotDeliverableException(order.getStatus());
+        }
+
+        Order saved = orderRepository.save(order.withStatus(Delivered));
+
+        return orderEventPublisher.publishOrderDeliveredEvent(saved);
+    }
+
+    public Order completeOrder(@NotNull String id) {
+
+        log.info("Completing order: id={}", id);
+
+        Order order = findOrderOrThrow(id);
+
+        if (order.getStatus() != Delivered) {
+            throw new OrderNotCompletableException(order.getStatus());
+        }
+
+        Order saved = orderRepository.save(order.withStatus(Completed));
+
+        return orderEventPublisher.publishOrderCompletedEvent(saved);
     }
 
     private Order findOrderOrThrow(String id) {

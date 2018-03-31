@@ -33,8 +33,8 @@ public class OrderController {
         return orderService.getOrder(id);
     }
 
-    @DeleteMapping("{id}")
-    public void deleteOrder(@PathVariable("id") String id) {
-        orderService.deleteOrder(id);
+    @PutMapping("{id}/cancel")
+    public Order cancelOrder(@PathVariable("id") String id) {
+        return orderService.cancelOrder(id);
     }
 }
