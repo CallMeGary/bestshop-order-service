@@ -1,10 +1,10 @@
 package io.gary.bestshop.order.messaging;
 
 
-import io.gary.bestshop.order.messaging.event.order.OrderCancelledEvent;
-import io.gary.bestshop.order.messaging.event.order.OrderCompletedEvent;
-import io.gary.bestshop.order.messaging.event.order.OrderCreatedEvent;
-import io.gary.bestshop.order.messaging.event.order.OrderDeliveredEvent;
+import io.gary.bestshop.messaging.event.order.OrderCancelledEvent;
+import io.gary.bestshop.messaging.event.order.OrderCompletedEvent;
+import io.gary.bestshop.messaging.event.order.OrderCreatedEvent;
+import io.gary.bestshop.messaging.event.order.OrderDeliveredEvent;
 import io.gary.bestshop.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

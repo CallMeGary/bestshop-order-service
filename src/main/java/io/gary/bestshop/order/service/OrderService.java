@@ -87,7 +87,7 @@ public class OrderService {
 
     public Order deliverOrder(@NotNull String id) {
 
-        log.info("Delivered order: id={}", id);
+        log.info("Delivering order: id={}", id);
 
         Order order = findOrderOrThrow(id);
 
